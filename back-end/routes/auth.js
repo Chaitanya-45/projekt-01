@@ -79,10 +79,6 @@ router.post("/login", async (req, res) => {
       maxAge: 1000 * 60 * 60, // 1 hour expiry
     });
 
-    // Emit user_login event to Socket.IO server
-    const io = req.app.get("socketio"); // Get the Socket.IO instance
-    io.emit("user_login", { userId: user._id, username: user.name });
-
     res.json({ success: true, user: { name: user.name, email: user.email } });
   } catch (err) {
     res.status(500).json({ success: false, message: "Server error" });
@@ -114,26 +110,5 @@ router.post("/logout", (req, res) => {
   res.clearCookie("token");
   res.json({ success: true, message: "Logged out successfully" });
 });
-
-const auth = async (req, res, next) => {
-  try {
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
-
-    req.user = user;
-    next();
-  } catch (err) {
-    res.status(401).json({ message: 'Unauthorized' });
-  }
-};
 
 module.exports = router;

@@ -12,6 +12,7 @@ import Tasks from "./taskpage";
 import Calendar from "./calendar";
 import Messages from "./messages";
 import PostLoginLayout from "./postloginlayout";
+import Projects from "./projects";
 import { io } from "socket.io-client";
 
 // Initialize Socket.IO connection
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/signup" element={<Signup />} />
         <Route element={<PostLoginLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/projects" element={<Projects />} />
           <Route path="/taskpage" element={<Tasks />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/messages" element={<Messages socket={socket} />} />
