@@ -1,0 +1,49 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./navbar";
+import HeroSection from "./herosection";
+import DepartmentsSection from "./DepartmentsSection";
+import CampaignSection from "./CampaignSection";
+import SlidesSection from "./Slides";
+import Footer from "./footer";
+import LoginPage from "./login";
+import Signup from "./signup";
+import Dashboard from "./dashboard";
+import Tasks from "./taskpage";
+import Calendar from "./calendar";
+import Messages from "./messages";
+import PostLoginLayout from "./postloginlayout";
+import { io } from "socket.io-client";
+
+// Initialize Socket.IO connection
+const socket = io("http://localhost:5000", { withCredentials: true });
+
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <Navbar />
+              <HeroSection />
+              <DepartmentsSection />
+              <CampaignSection />
+              <SlidesSection />
+              <Footer />
+            </>
+          }
+        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route element={<PostLoginLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/taskpage" element={<Tasks />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/messages" element={<Messages socket={socket} />} />
+        </Route>
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </Router>
+  );
+}
