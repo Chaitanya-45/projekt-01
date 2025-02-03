@@ -12,15 +12,14 @@ export default function LoginPage() {
       const response = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ email, password }),
+        credentials: "include", // Include cookies in the request
       });
 
       const data = await response.json();
+      console.log("Login response:", data); // Debugging
 
       if (data.success) {
-        localStorage.setItem("token", data.token);
-
         navigate("/dashboard");
       } else {
         alert(data.message || "Invalid email or password");
@@ -30,7 +29,6 @@ export default function LoginPage() {
       alert("An error occurred. Please try again.");
     }
   };
-
 
   return (
     <div className="min-h-screen bg-[#FFF8F8] flex items-center justify-center p-4">

@@ -1,12 +1,13 @@
 const express = require("express");
 const Project = require("../models/project");
+const User = require("../models/user");
 const router = express.Router();
 
 // Create a new project
 router.post("/", async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const project = new Project({ name, description });
+    const { name, description, userId } = req.body;
+    const project = new Project({ name, description, createdBy: userId });
     await project.save();
     res.status(201).json(project);
   } catch (error) {
@@ -14,10 +15,23 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Get all projects
-router.get("/", async (req, res) => {
+// Get projects created by the logged-in user
+router.get("/created/:userId", async (req, res) => {
   try {
-    const projects = await Project.find();
+    const { userId } = req.params;
+    const projects = await Project.find({ createdBy: userId });
+    res.status(200).json(projects);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+// Get projects assigned to the logged-in user
+router.get("/assigned/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    const projects = await Project.find({ "team.email": user.email });
     res.status(200).json(projects);
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -35,6 +49,14 @@ router.post("/:projectId/team", async (req, res) => {
     }
     project.team.push({ email, task, status });
     await project.save();
+
+    // Send notification to the user
+    const user = await User.findOne({ email });
+    if (user) {
+      user.notifications.push({ message: `You have been added to the project: ${project.name}` });
+      await user.save();
+    }
+
     res.status(200).json({ team: project.team });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
@@ -49,27 +71,6 @@ router.get("/:projectId/team", async (req, res) => {
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
-    res.status(200).json({ team: project.team });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
-  }
-});
-
-// Update the status of a team member's task
-router.put("/:projectId/team/:memberEmail", async (req, res) => {
-  try {
-    const { projectId, memberEmail } = req.params;
-    const { status } = req.body;
-    const project = await Project.findById(projectId);
-    if (!project) {
-      return res.status(404).json({ message: "Project not found" });
-    }
-    const member = project.team.find(member => member.email === memberEmail);
-    if (!member) {
-      return res.status(404).json({ message: "Team member not found" });
-    }
-    member.status = status;
-    await project.save();
     res.status(200).json({ team: project.team });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
