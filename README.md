@@ -16,6 +16,18 @@
 ## Introduction
 This project is a full-stack application that includes a back-end server built with Node.js, Express, and MongoDB, and a front-end client built with React and Vite. The application allows users to manage projects, tasks, and team members.
 
+![image](https://github.com/user-attachments/assets/fda8b618-28df-484a-8fca-b37bc0b68e32)
+
+![image](https://github.com/user-attachments/assets/2e1309ca-dbc1-431a-8d24-98bb350b8cd3)
+
+![image](https://github.com/user-attachments/assets/d1830300-1020-4e91-a8a6-659b4746c039)
+
+![image](https://github.com/user-attachments/assets/2e149b38-5f5f-45af-9b59-cc3cbe64abde)
+
+![image](https://github.com/user-attachments/assets/ca3371b9-c247-47b3-8b5e-4eb87f1bb3fb)
+
+![image](https://github.com/user-attachments/assets/7c589c9c-8a41-4148-a03e-cae81235fe93)
+
 ## Project Structure
 
 ![alt text](<mn .png>)
