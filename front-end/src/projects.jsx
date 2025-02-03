@@ -1,63 +1,87 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [newProject, setNewProject] = useState({ name: "", description: "" });
   const [selectedProject, setSelectedProject] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
-  const [newMember, setNewMember] = useState({ name: "", task: "", status: "In Progress" });
+  const [newMember, setNewMember] = useState({ email: "", task: "", status: "In Progress" });
 
-  // Fake data for task completion percentage
-  const getRandomCompletionPercentage = () => Math.floor(Math.random() * 101);
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/projects");
+        setProjects(response.data);
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   // Handle creating a new project
-  const handleCreateProject = (e) => {
+  const handleCreateProject = async (e) => {
     e.preventDefault();
-    if (newProject.name.trim() === "") return;
-    const project = {
-      ...newProject,
-      id: Date.now(),
-      team: [],
-      completionPercentage: getRandomCompletionPercentage(), // Add fake completion percentage
-    };
-    setProjects([...projects, project]);
-    setNewProject({ name: "", description: "" });
+    try {
+      const response = await axios.post("http://localhost:5000/projects", newProject);
+      setProjects([...projects, response.data]);
+      setNewProject({ name: "", description: "" });
+    } catch (error) {
+      console.error("Error creating project:", error);
+    }
   };
 
   // Handle selecting a project to view details
-  const handleSelectProject = (project) => {
+  const handleSelectProject = async (project) => {
     setSelectedProject(project);
-    setTeamMembers(project.team);
+    try {
+      const response = await axios.get(`http://localhost:5000/projects/${project._id}/team`);
+      setTeamMembers(response.data.team);
+      updateCompletionPercentage(response.data.team);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+    }
   };
 
   // Handle adding a new team member to the selected project
-  const handleAddMember = (e) => {
+  const handleAddMember = async (e) => {
     e.preventDefault();
-    if (newMember.name.trim() === "" || newMember.task.trim() === "") return;
-    const updatedProjects = projects.map((project) =>
-      project.id === selectedProject.id
-        ? { ...project, team: [...project.team, newMember] }
-        : project
-    );
-    setProjects(updatedProjects);
-    setTeamMembers([...teamMembers, newMember]);
-    setNewMember({ name: "", task: "", status: "In Progress" });
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/projects/${selectedProject._id}/team`,
+        newMember
+      );
+      setTeamMembers(response.data.team);
+      setNewMember({ email: "", task: "", status: "In Progress" });
+      updateCompletionPercentage(response.data.team);
+    } catch (error) {
+      console.error("Error adding team member:", error);
+    }
   };
 
   // Toggle the task status
-  const toggleTaskStatus = (memberName) => {
-    const updatedMembers = teamMembers.map((member) =>
-      member.name === memberName
-        ? { ...member, status: member.status === "In Progress" ? "Completed" : "In Progress" }
-        : member
-    );
-    setTeamMembers(updatedMembers);
-    const updatedProjects = projects.map((project) =>
-      project.id === selectedProject.id
-        ? { ...project, team: updatedMembers }
-        : project
-    );
-    setProjects(updatedProjects);
+  const toggleTaskStatus = async (memberEmail) => {
+    try {
+      const member = teamMembers.find(member => member.email === memberEmail);
+      const newStatus = member.status === "In Progress" ? "Completed" : "In Progress";
+      const response = await axios.put(
+        `http://localhost:5000/projects/${selectedProject._id}/team/${memberEmail}`,
+        { status: newStatus }
+      );
+      setTeamMembers(response.data.team);
+      updateCompletionPercentage(response.data.team);
+    } catch (error) {
+      console.error("Error updating task status:", error);
+    }
+  };
+
+  // Calculate and update the completion percentage
+  const updateCompletionPercentage = (team) => {
+    const totalTasks = team.length;
+    const completedTasks = team.filter(member => member.status === "Completed").length;
+    const completionPercentage = (completedTasks / totalTasks) * 100;
+    setSelectedProject(prev => ({ ...prev, completionPercentage }));
   };
 
   return (
@@ -212,7 +236,7 @@ export default function ProjectsPage() {
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-gray-800 font-medium">{member.name}</p>
+                        <p className="text-gray-800 font-medium">{member.email}</p>
                         <p className="text-sm text-gray-500">Task: {member.task}</p>
                       </div>
                       <span
@@ -226,7 +250,7 @@ export default function ProjectsPage() {
                       </span>
                     </div>
                     <button
-                      onClick={() => toggleTaskStatus(member.name)}
+                      onClick={() => toggleTaskStatus(member.email)}
                       className="mt-2 text-sm text-[#FE6059] hover:text-[#E55650] transition duration-200"
                     >
                       Toggle Status
@@ -239,16 +263,17 @@ export default function ProjectsPage() {
             <form onSubmit={handleAddMember} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Team Member Name
+                  Team Member Email
                 </label>
                 <input
-                  type="text"
-                  placeholder="Enter team member's name"
-                  value={newMember.name}
+                  type="email"
+                  placeholder="Enter team member's email"
+                  value={newMember.email}
                   onChange={(e) =>
-                    setNewMember({ ...newMember, name: e.target.value })
+                    setNewMember({ ...newMember, email: e.target.value })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FE6059] focus:outline-none transition duration-200"
+                  required
                 />
               </div>
               <div>
@@ -263,6 +288,7 @@ export default function ProjectsPage() {
                     setNewMember({ ...newMember, task: e.target.value })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FE6059] focus:outline-none transition duration-200"
+                  required
                 />
               </div>
               <button

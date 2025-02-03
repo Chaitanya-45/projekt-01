@@ -5,6 +5,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
+const projectRoutes = require("./routes/projects");
 require('dotenv').config();
 require('./config/passport')(passport);
 
@@ -23,6 +24,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/auth', authRoutes);
+app.use("/projects", projectRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI)

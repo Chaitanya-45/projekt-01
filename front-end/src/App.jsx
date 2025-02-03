@@ -13,10 +13,8 @@ import Calendar from "./calendar";
 import Messages from "./messages";
 import PostLoginLayout from "./postloginlayout";
 import Projects from "./projects";
-import { io } from "socket.io-client";
 
-// Initialize Socket.IO connection
-const socket = io("http://localhost:5000", { withCredentials: true });
+
 
 export default function App() {
   return (
@@ -42,7 +40,7 @@ export default function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/taskpage" element={<Tasks />} />
           <Route path="/calendar" element={<Calendar />} />
-          <Route path="/messages" element={<Messages socket={socket} />} />
+          <Route path="/messages" element={<Messages />} />
         </Route>
         <Route path="/dashboard" element={<Dashboard />} />
       </Routes>

@@ -23,6 +23,12 @@ export default function PostLoginLayout() {
             Tasks
           </Link>
           <Link
+            to="/projects"
+            className="block text-gray-700 hover:text-[#FE6059] font-medium transition duration-300 ease-in-out transform hover:translate-x-2"
+          >
+            Projects
+          </Link>
+          <Link
             to="/calendar"
             className="block text-gray-700 hover:text-[#FE6059] font-medium transition duration-300 ease-in-out transform hover:translate-x-2"
           >
